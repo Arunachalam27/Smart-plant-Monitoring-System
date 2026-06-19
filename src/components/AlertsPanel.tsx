@@ -4,17 +4,16 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Alert } from "@/types/plant";
 
-export const AlertsPanel = ({
-  alerts,
-  onDismiss,
-}: {
+interface Props {
   alerts: Alert[];
   onDismiss: (id: string) => void;
-}) => {
+}
+
+export function AlertsPanel({ alerts, onDismiss }: Props) {
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-base flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-base">
           🔔 Alerts
           {alerts.length > 0 && (
             <span className="rounded-full bg-destructive px-2 py-0.5 text-xs text-destructive-foreground">
@@ -26,7 +25,7 @@ export const AlertsPanel = ({
       <CardContent>
         <ScrollArea className="h-64">
           {alerts.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">
+            <p className="py-8 text-center text-sm text-muted-foreground">
               All plants are healthy! 🌱
             </p>
           ) : (
@@ -42,11 +41,16 @@ export const AlertsPanel = ({
                 >
                   <div>
                     <p className="font-medium">{alert.message}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="mt-1 text-xs text-muted-foreground">
                       {alert.timestamp.toLocaleTimeString()}
                     </p>
                   </div>
-                  <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => onDismiss(alert.id)}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 shrink-0"
+                    onClick={() => onDismiss(alert.id)}
+                  >
                     <X className="h-3 w-3" />
                   </Button>
                 </div>
@@ -57,4 +61,4 @@ export const AlertsPanel = ({
       </CardContent>
     </Card>
   );
-};
+}

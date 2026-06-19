@@ -12,18 +12,17 @@ import {
 
 type Page = "dashboard" | "manage";
 
-const items = [
-  { title: "Dashboard", page: "dashboard" as Page, icon: LayoutDashboard },
-  { title: "Manage Plants", page: "manage" as Page, icon: Settings },
+const navItems = [
+  { label: "Dashboard", page: "dashboard" as Page, icon: LayoutDashboard },
+  { label: "Manage Plants", page: "manage" as Page, icon: Settings },
 ];
 
-export function AppSidebar({
-  activePage,
-  onNavigate,
-}: {
+interface Props {
   activePage: Page;
   onNavigate: (page: Page) => void;
-}) {
+}
+
+export function AppSidebar({ activePage, onNavigate }: Props) {
   return (
     <Sidebar>
       <SidebarContent>
@@ -34,14 +33,14 @@ export function AppSidebar({
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
+              {navItems.map((item) => (
                 <SidebarMenuItem key={item.page}>
                   <SidebarMenuButton
                     onClick={() => onNavigate(item.page)}
                     isActive={activePage === item.page}
                   >
                     <item.icon className="h-4 w-4" />
-                    <span>{item.title}</span>
+                    <span>{item.label}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

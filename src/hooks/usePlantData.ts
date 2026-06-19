@@ -7,7 +7,9 @@ const DEFAULT_PLANTS: PlantConfig[] = [
   { id: "3", name: "Basil", emoji: "🌱", criticalThreshold: 30, warningThreshold: 45 },
 ];
 
-const MAX_HISTORY = 10;
+// keep last 10 readings per plant
+const HISTORY_LIMIT = 10;
+const REFRESH_INTERVAL = 4000;
 
 function generateReading(): SensorReading {
   return {
@@ -19,7 +21,7 @@ function generateReading(): SensorReading {
   };
 }
 
-function getStatus(moisture: number, config: PlantConfig): "healthy" | "warning" | "critical" {
+function getPlantStatus(moisture: number, config: PlantConfig): PlantData["status"] {
   if (moisture < config.criticalThreshold) return "critical";
   if (moisture < config.warningThreshold) return "warning";
   return "healthy";
@@ -32,42 +34,48 @@ export function usePlantData() {
 
   const updateReadings = useCallback(() => {
     setPlantDataMap((prev) => {
-      const next: Record<string, PlantData> = {};
+      const updated: Record<string, PlantData> = {};
+
       for (const config of plantConfigs) {
         const reading = generateReading();
         const existing = prev[config.id];
         const history = existing
-          ? [...existing.history, reading].slice(-MAX_HISTORY)
+          ? [...existing.history, reading].slice(-HISTORY_LIMIT)
           : [reading];
-        const status = getStatus(reading.moisture, config);
+        const status = getPlantStatus(reading.moisture, config);
 
-        next[config.id] = { config, current: reading, history, status };
+        updated[config.id] = { config, current: reading, history, status };
 
         if (status !== "healthy") {
-          setAlerts((a) => [
-            {
-              id: `${config.id}-${Date.now()}`,
-              plantId: config.id,
-              plantName: config.name,
-              message:
-                status === "critical"
-                  ? `${config.emoji} ${config.name} moisture critically low (${reading.moisture}%)`
-                  : `${config.emoji} ${config.name} moisture below warning level (${reading.moisture}%)`,
-              level: status,
-              timestamp: new Date(),
-            },
-            ...a,
-          ].slice(0, 50));
+          const msg =
+            status === "critical"
+              ? `${config.emoji} ${config.name} moisture critically low (${reading.moisture}%)`
+              : `${config.emoji} ${config.name} moisture below warning level (${reading.moisture}%)`;
+
+          setAlerts((prev) =>
+            [
+              {
+                id: `${config.id}-${Date.now()}`,
+                plantId: config.id,
+                plantName: config.name,
+                message: msg,
+                level: status,
+                timestamp: new Date(),
+              },
+              ...prev,
+            ].slice(0, 50)
+          );
         }
       }
-      return next;
+
+      return updated;
     });
   }, [plantConfigs]);
 
   useEffect(() => {
     updateReadings();
-    const interval = setInterval(updateReadings, 4000);
-    return () => clearInterval(interval);
+    const timer = setInterval(updateReadings, REFRESH_INTERVAL);
+    return () => clearInterval(timer);
   }, [updateReadings]);
 
   const addPlant = (plant: Omit<PlantConfig, "id">) => {
@@ -76,9 +84,7 @@ export function usePlantData() {
   };
 
   const updatePlant = (id: string, updates: Partial<PlantConfig>) => {
-    setPlantConfigs((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, ...updates } : p))
-    );
+    setPlantConfigs((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)));
   };
 
   const removePlant = (id: string) => {
@@ -94,6 +100,7 @@ export function usePlantData() {
     setAlerts((prev) => prev.filter((a) => a.id !== alertId));
   };
 
+  // build the plants array from configs + live data
   const plants = plantConfigs.map(
     (c) =>
       plantDataMap[c.id] ?? {

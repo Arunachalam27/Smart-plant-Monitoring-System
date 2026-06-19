@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   LineChart,
   Line,
@@ -6,13 +5,18 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
   Legend,
+  ResponsiveContainer,
 } from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { PlantData } from "@/types/plant";
 
-export const SensorChart = ({ plant }: { plant: PlantData }) => {
-  const data = plant.history.map((r, i) => ({
+interface Props {
+  plant: PlantData;
+}
+
+export function SensorChart({ plant }: Props) {
+  const chartData = plant.history.map((r, i) => ({
     time: `T${i + 1}`,
     Moisture: r.moisture,
     Temp: r.temperature,
@@ -29,7 +33,7 @@ export const SensorChart = ({ plant }: { plant: PlantData }) => {
       <CardContent>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data}>
+            <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
               <XAxis dataKey="time" className="text-xs" />
               <YAxis className="text-xs" />
@@ -51,4 +55,4 @@ export const SensorChart = ({ plant }: { plant: PlantData }) => {
       </CardContent>
     </Card>
   );
-};
+}

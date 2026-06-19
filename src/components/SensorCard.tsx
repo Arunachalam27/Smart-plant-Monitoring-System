@@ -2,29 +2,33 @@ import { Droplets, Thermometer, Sun, Wind } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { PlantData } from "@/types/plant";
 
-const statusColors = {
+const borderByStatus = {
   healthy: "border-l-emerald-500",
   warning: "border-l-amber-500",
   critical: "border-l-red-500",
 };
 
-const statusBadge = {
+const badgeByStatus = {
   healthy: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
   warning: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
   critical: "bg-red-500/10 text-red-600 dark:text-red-400",
 };
 
-export const SensorCard = ({ plant }: { plant: PlantData }) => {
+interface Props {
+  plant: PlantData;
+}
+
+export function SensorCard({ plant }: Props) {
   const { config, current, status } = plant;
 
   return (
-    <Card className={`border-l-4 ${statusColors[status]} transition-all hover:shadow-lg`}>
+    <Card className={`border-l-4 ${borderByStatus[status]} transition-all hover:shadow-lg`}>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">
             {config.emoji} {config.name}
           </CardTitle>
-          <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusBadge[status]}`}>
+          <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${badgeByStatus[status]}`}>
             {status}
           </span>
         </div>
@@ -63,4 +67,4 @@ export const SensorCard = ({ plant }: { plant: PlantData }) => {
       </CardContent>
     </Card>
   );
-};
+}

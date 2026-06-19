@@ -10,10 +10,12 @@ import { usePlantData } from "@/hooks/usePlantData";
 
 type Page = "dashboard" | "manage";
 
-const Index = () => {
+export default function Index() {
   const [page, setPage] = useState<Page>("dashboard");
   const { plants, alerts, addPlant, updatePlant, removePlant, dismissAlert, plantConfigs } =
     usePlantData();
+
+  const pageTitle = page === "dashboard" ? "🌱 Smart Plant Dashboard" : "⚙️ Manage Plants";
 
   return (
     <SidebarProvider>
@@ -23,9 +25,7 @@ const Index = () => {
           <header className="flex items-center justify-between border-b px-4 py-3">
             <div className="flex items-center gap-2">
               <SidebarTrigger />
-              <h1 className="text-xl font-bold">
-                {page === "dashboard" ? "🌱 Smart Plant Dashboard" : "⚙️ Manage Plants"}
-              </h1>
+              <h1 className="text-xl font-bold">{pageTitle}</h1>
             </div>
             <ThemeToggle />
           </header>
@@ -45,9 +45,7 @@ const Index = () => {
                       <SensorChart key={plant.config.id} plant={plant} />
                     ))}
                   </div>
-                  <div>
-                    <AlertsPanel alerts={alerts} onDismiss={dismissAlert} />
-                  </div>
+                  <AlertsPanel alerts={alerts} onDismiss={dismissAlert} />
                 </div>
               </div>
             ) : (
@@ -63,6 +61,4 @@ const Index = () => {
       </div>
     </SidebarProvider>
   );
-};
-
-export default Index;
+}

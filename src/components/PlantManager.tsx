@@ -6,29 +6,37 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { PlantConfig } from "@/types/plant";
 
-const EMOJIS = ["🪴", "🌿", "🌱", "🌵", "🌻", "🌷", "🌸", "🍀", "🌳", "🌾"];
+const PLANT_EMOJIS = ["🪴", "🌿", "🌱", "🌵", "🌻", "🌷", "🌸", "🍀", "🌳", "🌾"];
 
-interface PlantManagerProps {
+const defaultForm = {
+  name: "",
+  emoji: "🪴",
+  criticalThreshold: 20,
+  warningThreshold: 35,
+};
+
+interface Props {
   plants: PlantConfig[];
   onAdd: (plant: Omit<PlantConfig, "id">) => void;
   onUpdate: (id: string, updates: Partial<PlantConfig>) => void;
   onRemove: (id: string) => void;
 }
 
-export const PlantManager = ({ plants, onAdd, onUpdate, onRemove }: PlantManagerProps) => {
-  const [editing, setEditing] = useState<string | null>(null);
-  const [form, setForm] = useState({ name: "", emoji: "🪴", criticalThreshold: 20, warningThreshold: 35 });
+export function PlantManager({ plants, onAdd, onUpdate, onRemove }: Props) {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState(defaultForm);
 
   const resetForm = () => {
-    setForm({ name: "", emoji: "🪴", criticalThreshold: 20, warningThreshold: 35 });
-    setEditing(null);
+    setForm(defaultForm);
+    setEditingId(null);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim()) return;
-    if (editing) {
-      onUpdate(editing, form);
+
+    if (editingId) {
+      onUpdate(editingId, form);
     } else {
       onAdd(form);
     }
@@ -36,7 +44,7 @@ export const PlantManager = ({ plants, onAdd, onUpdate, onRemove }: PlantManager
   };
 
   const startEdit = (plant: PlantConfig) => {
-    setEditing(plant.id);
+    setEditingId(plant.id);
     setForm({
       name: plant.name,
       emoji: plant.emoji,
@@ -49,11 +57,11 @@ export const PlantManager = ({ plants, onAdd, onUpdate, onRemove }: PlantManager
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>{editing ? "Edit Plant" : "Add New Plant"}</CardTitle>
+          <CardTitle>{editingId ? "Edit Plant" : "Add New Plant"}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>Plant Name</Label>
                 <Input
@@ -62,16 +70,19 @@ export const PlantManager = ({ plants, onAdd, onUpdate, onRemove }: PlantManager
                   placeholder="e.g. Monstera"
                 />
               </div>
+
               <div className="space-y-2">
                 <Label>Emoji</Label>
                 <div className="flex flex-wrap gap-1">
-                  {EMOJIS.map((e) => (
+                  {PLANT_EMOJIS.map((e) => (
                     <button
                       key={e}
                       type="button"
                       onClick={() => setForm((f) => ({ ...f, emoji: e }))}
-                      className={`text-xl p-1 rounded transition-colors ${
-                        form.emoji === e ? "bg-primary/20 ring-2 ring-primary" : "hover:bg-muted"
+                      className={`rounded p-1 text-xl transition-colors ${
+                        form.emoji === e
+                          ? "bg-primary/20 ring-2 ring-primary"
+                          : "hover:bg-muted"
                       }`}
                     >
                       {e}
@@ -79,6 +90,7 @@ export const PlantManager = ({ plants, onAdd, onUpdate, onRemove }: PlantManager
                   ))}
                 </div>
               </div>
+
               <div className="space-y-2">
                 <Label>Critical Threshold (%)</Label>
                 <Input
@@ -86,9 +98,12 @@ export const PlantManager = ({ plants, onAdd, onUpdate, onRemove }: PlantManager
                   min={0}
                   max={100}
                   value={form.criticalThreshold}
-                  onChange={(e) => setForm((f) => ({ ...f, criticalThreshold: +e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, criticalThreshold: +e.target.value }))
+                  }
                 />
               </div>
+
               <div className="space-y-2">
                 <Label>Warning Threshold (%)</Label>
                 <Input
@@ -96,16 +111,19 @@ export const PlantManager = ({ plants, onAdd, onUpdate, onRemove }: PlantManager
                   min={0}
                   max={100}
                   value={form.warningThreshold}
-                  onChange={(e) => setForm((f) => ({ ...f, warningThreshold: +e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, warningThreshold: +e.target.value }))
+                  }
                 />
               </div>
             </div>
+
             <div className="flex gap-2">
               <Button type="submit">
-                <Plus className="h-4 w-4 mr-1" />
-                {editing ? "Update" : "Add Plant"}
+                <Plus className="mr-1 h-4 w-4" />
+                {editingId ? "Update" : "Add Plant"}
               </Button>
-              {editing && (
+              {editingId && (
                 <Button type="button" variant="outline" onClick={resetForm}>
                   Cancel
                 </Button>
@@ -121,7 +139,9 @@ export const PlantManager = ({ plants, onAdd, onUpdate, onRemove }: PlantManager
         </CardHeader>
         <CardContent>
           {plants.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">No plants yet. Add one above!</p>
+            <p className="py-4 text-center text-sm text-muted-foreground">
+              No plants yet — add one above!
+            </p>
           ) : (
             <div className="space-y-2">
               {plants.map((plant) => (
@@ -130,9 +150,9 @@ export const PlantManager = ({ plants, onAdd, onUpdate, onRemove }: PlantManager
                   className="flex items-center justify-between rounded-lg border p-3"
                 >
                   <div>
-                    <span className="text-lg mr-2">{plant.emoji}</span>
+                    <span className="mr-2 text-lg">{plant.emoji}</span>
                     <span className="font-medium">{plant.name}</span>
-                    <span className="text-xs text-muted-foreground ml-3">
+                    <span className="ml-3 text-xs text-muted-foreground">
                       Critical: {plant.criticalThreshold}% · Warning: {plant.warningThreshold}%
                     </span>
                   </div>
@@ -152,4 +172,4 @@ export const PlantManager = ({ plants, onAdd, onUpdate, onRemove }: PlantManager
       </Card>
     </div>
   );
-};
+}
